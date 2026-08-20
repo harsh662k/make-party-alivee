@@ -1,0 +1,700 @@
+<title>Make Party Alive</title>
+<meta name="description" content="Point a camera at the room. Make Party Alive turns your friends into the visuals, locked to whatever you're playing, and runs all night on its own.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:title" content="Make Party Alive">
+<meta property="og:description" content="Point a camera at the room. Your friends become the visuals, locked to whatever you're playing.">
+<meta property="og:image" content="og.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+  :root {
+    --ground:  #0B0B10;
+    --panel:   #16161C;
+    --raised:  #232430;
+    --line:    #3A3B4A;
+    --line-soft: #24252F;
+    --text:    #E8E8F0;
+    --dim:     #9A9AAB;
+    --accent:  #22D3EE;
+    --hot:     #FF3B5C;
+
+    --display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+    --measure: 64ch;
+    --pad: clamp(1.25rem, 4vw, 3rem);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--text);
+    font-family: var(--display);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1120px;
+    margin-inline: auto;
+    padding-inline: var(--pad);
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  /* ---------- nav ---------- */
+  .nav {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--ground) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .nav-in {
+    display: flex; align-items: center; gap: 1.5rem;
+    height: 60px;
+  }
+  .brand {
+    font-weight: 800; letter-spacing: -0.02em; font-size: 1rem;
+    color: var(--text); text-decoration: none; margin-right: auto;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .brand img {
+    width: 28px; height: 28px; border-radius: 7px;
+    box-shadow: 0 0 14px rgba(34, 211, 238, 0.35);
+  }
+  .nav a.link {
+    font-family: var(--mono); font-size: .78rem; color: var(--dim);
+    text-decoration: none; letter-spacing: .04em;
+  }
+  .nav a.link:hover { color: var(--text); }
+  @media (max-width: 700px) { .nav a.link { display: none; } }
+
+  .btn {
+    display: inline-block;
+    font-family: var(--mono); font-size: .82rem; font-weight: 500;
+    letter-spacing: .02em;
+    padding: .62rem 1.1rem; border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--raised); color: var(--text);
+    text-decoration: none; white-space: nowrap;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .btn:hover { background: #2E3040; border-color: #4A4C60; }
+  .btn-primary {
+    background: var(--accent); border-color: var(--accent); color: #06171C;
+    font-weight: 700;
+  }
+  .btn-primary:hover { background: #4BE0F5; border-color: #4BE0F5; }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; border-bottom: 1px solid var(--line-soft); }
+  #field {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    display: block; opacity: .5;
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(to bottom,
+      color-mix(in srgb, var(--ground) 30%, transparent) 0%,
+      color-mix(in srgb, var(--ground) 75%, transparent) 55%,
+      var(--ground) 100%);
+    pointer-events: none;
+  }
+  .hero-in {
+    position: relative; z-index: 2;
+    padding-block: clamp(4rem, 12vw, 8.5rem) clamp(3rem, 8vw, 5rem);
+  }
+  .eyebrow {
+    font-family: var(--mono); font-size: .74rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 1.4rem;
+  }
+  h1 {
+    font-size: clamp(2.7rem, 8.5vw, 5.4rem);
+    line-height: .95; letter-spacing: -0.035em; font-weight: 800;
+    margin: 0 0 1.4rem; text-wrap: balance; max-width: 15ch;
+  }
+  .lede {
+    font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+    color: var(--dim); max-width: 54ch; margin: 0 0 2.2rem;
+  }
+  .lede strong { color: var(--text); font-weight: 600; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
+  .cta-note {
+    font-family: var(--mono); font-size: .74rem; color: var(--dim);
+    width: 100%; margin-top: .3rem;
+  }
+
+  /* HUD badge — mirrors the app's own readout */
+  .hud {
+    display: inline-flex; align-items: center; gap: .6rem;
+    font-family: var(--mono); font-size: .8rem;
+    background: rgba(11,11,16,.72);
+    border: 1px solid var(--line);
+    border-radius: 999px; padding: .42rem .9rem;
+    margin-bottom: 1.6rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .hud .pip {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--hot); flex: none;
+  }
+
+  /* ---------- sections ---------- */
+  section { padding-block: clamp(3.5rem, 8vw, 6rem); }
+  section + section { border-top: 1px solid var(--line-soft); }
+
+  .label {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--dim);
+    margin: 0 0 1.6rem; display: flex; align-items: center; gap: .8rem;
+  }
+  .label::after {
+    content: ""; flex: 1; height: 1px; background: var(--line-soft);
+  }
+
+  h2 {
+    font-size: clamp(1.7rem, 4vw, 2.6rem); line-height: 1.08;
+    letter-spacing: -0.025em; font-weight: 800;
+    margin: 0 0 1rem; text-wrap: balance; max-width: 22ch;
+  }
+  h3 {
+    font-size: 1.02rem; font-weight: 600; letter-spacing: -0.005em;
+    margin: 0 0 .45rem;
+  }
+  p { max-width: var(--measure); }
+  .sub { color: var(--dim); max-width: 58ch; margin-top: 0; }
+
+  .pillars {
+    display: grid; gap: 1px; background: var(--line-soft);
+    border: 1px solid var(--line-soft); border-radius: 8px; overflow: hidden;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    margin-top: 2.5rem;
+  }
+  .pillar { background: var(--panel); padding: 1.6rem 1.5rem; }
+  .pillar .n {
+    font-family: var(--mono); font-size: .72rem; color: var(--accent);
+    letter-spacing: .1em; display: block; margin-bottom: .9rem;
+  }
+  .pillar p { color: var(--dim); font-size: .93rem; margin: 0; }
+
+  /* looks */
+  .looks {
+    display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 2rem;
+    max-width: 900px;
+  }
+  .look {
+    font-family: var(--mono); font-size: .8rem;
+    padding: .42rem .8rem; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--panel);
+    color: var(--dim);
+  }
+  .look.hi { color: #06171C; background: var(--accent); border-color: var(--accent); font-weight: 500; }
+
+  /* steps */
+  .steps { counter-reset: s; margin-top: 2.4rem; display: grid; gap: 1.6rem; max-width: 640px; }
+  .step { display: flex; gap: 1.1rem; align-items: baseline; }
+  .step .k {
+    font-family: var(--mono); font-size: .78rem; color: var(--accent);
+    flex: none; width: 2.2rem;
+  }
+  .step p { margin: .3rem 0 0; color: var(--dim); font-size: .94rem; }
+
+  /* pricing */
+  .plans {
+    display: grid; gap: 1.2rem; margin-top: 2.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    max-width: 760px; align-items: start;
+  }
+  .plan {
+    border: 1px solid var(--line-soft); border-radius: 8px;
+    background: var(--panel); padding: 1.7rem 1.6rem;
+  }
+  .plan.paid { border-color: var(--accent); }
+  .plan .tier {
+    font-family: var(--mono); font-size: .74rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 .8rem;
+  }
+  .plan.paid .tier { color: var(--accent); }
+  .price {
+    font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em;
+    line-height: 1; margin: 0 0 .3rem; font-variant-numeric: tabular-nums;
+  }
+  .price small { font-size: .82rem; font-weight: 500; color: var(--dim); letter-spacing: 0; }
+  .plan ul { list-style: none; padding: 0; margin: 1.3rem 0 1.6rem; display: grid; gap: .55rem; }
+  .plan li {
+    font-size: .92rem; color: var(--dim);
+    padding-left: 1.35rem; position: relative;
+  }
+  .plan li::before {
+    content: "+"; position: absolute; left: 0; top: -1px;
+    font-family: var(--mono); color: var(--accent);
+  }
+  .plan li.no { color: #6E6E7E; }
+  .plan li.no::before { content: "\2013"; color: #5A5A6A; }
+
+  /* faq + specs */
+  .faq { margin-top: 2rem; max-width: 760px; }
+  details {
+    border-bottom: 1px solid var(--line-soft); padding: 1.05rem 0;
+  }
+  summary {
+    cursor: pointer; font-weight: 600; font-size: .98rem;
+    list-style: none; display: flex; align-items: center; gap: .8rem;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before {
+    content: "+"; font-family: var(--mono); color: var(--accent);
+    flex: none; font-size: .95rem;
+  }
+  details[open] summary::before { content: "\2013"; }
+  details p { margin: .8rem 0 0 1.6rem; color: var(--dim); font-size: .94rem; }
+
+  .specs {
+    display: grid; gap: 1px; background: var(--line-soft);
+    border: 1px solid var(--line-soft); border-radius: 8px; overflow: hidden;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    margin-top: 2rem; max-width: 800px;
+  }
+  .spec { background: var(--panel); padding: 1.1rem 1.2rem; }
+  .spec dt {
+    font-family: var(--mono); font-size: .7rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--dim); margin-bottom: .35rem;
+  }
+  .spec dd { margin: 0; font-size: .92rem; }
+
+  .about-box {
+    margin-top: 2.4rem; max-width: 760px;
+    border: 1px solid var(--line-soft); border-radius: 8px;
+    background: var(--panel); padding: 1.6rem;
+    display: flex; align-items: center; gap: 1.6rem; flex-wrap: wrap;
+  }
+  .about-box > div { flex: 1 1 300px; }
+  .about-box p { margin: 0; color: var(--dim); font-size: .93rem; }
+
+  footer {
+    border-top: 1px solid var(--line-soft);
+    padding-block: 2.5rem 3.5rem; color: var(--dim);
+    font-size: .85rem;
+  }
+  footer p { max-width: 70ch; }
+  .fine { font-family: var(--mono); font-size: .72rem; color: #6E6E7E; }
+</style>
+
+<nav class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top"><img src="data:image/png;base64,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" alt="Make Party Alive" width="28" height="28">Make Party Alive</a>
+    <a class="link" href="#looks">Looks</a>
+    <a class="link" href="#how">How it works</a>
+    <a class="link" href="#pricing">Pricing</a>
+    <a class="link" href="#about">About</a>
+    <a class="btn btn-primary" href="#download">Download free</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="wrap hero-in">
+    <p class="eyebrow">Automatic crowd visuals &middot; Windows</p>
+    <div class="hud"><span class="pip" id="pip"></span><span id="hudtext">128 BPM &middot; calm &middot; next 24b</span></div>
+    <h1>Your crowd is the visuals.</h1>
+    <p class="lede">
+      Point a camera at the room and plug into the projector. Make Party Alive
+      repaints the people in front of it in real time, locked to whatever you're
+      playing &mdash; and <strong>runs the whole set without you touching it</strong>.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#download">Download free</a>
+      <a class="btn" href="#pricing">Remove watermark &mdash; $20</a>
+      <p class="cta-note">Windows 10 / 11 &middot; no install &middot; works offline</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="wrap" id="why">
+    <p class="label">The difference</p>
+    <h2>Every other visual tool plays clips. This one plays the room.</h2>
+    <p class="sub">
+      VJ software gives you a media library and expects somebody to stand behind
+      a laptop operating it. Music visualisers draw generative shapes that have
+      nothing to do with anyone present. Make Party Alive points a camera at your
+      actual crowd and turns them into the artwork &mdash; which is why people film it.
+    </p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <span class="n">01</span>
+        <h3>The crowd is the content</h3>
+        <p>Face-aware looks respond to the people in frame. Shroom World spawns a
+        character for every person it sees, so the room populates the scene.</p>
+      </div>
+      <div class="pillar">
+        <span class="n">02</span>
+        <h3>It runs itself</h3>
+        <p>Autopilot changes the look on musical phrase boundaries and slams a
+        change on the drop. Beat FX rotate on their own. Nobody has to watch it.</p>
+      </div>
+      <div class="pillar">
+        <span class="n">03</span>
+        <h3>No extra hardware</h3>
+        <p>It listens to rekordbox directly &mdash; no audio interface, no splitter
+        cable, no line-in. A webcam and a spare HDMI port is the whole rig.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" id="looks">
+    <p class="label">23 looks</p>
+    <h2>Four painted styles, eighteen live effects, one passthrough.</h2>
+    <p class="sub">
+      Pick one and leave it, or let Autopilot cycle the ones you've ticked.
+      Painted styles run on the GPU at around 15&thinsp;ms a frame.
+    </p>
+    <div class="looks">
+      <span class="look">Raw</span>
+      <span class="look">Candy</span>
+      <span class="look">Mosaic</span>
+      <span class="look">Rainfall</span>
+      <span class="look">Udnie</span>
+      <span class="look">Neon Glow</span>
+      <span class="look">Thermal</span>
+      <span class="look">Kaleidoscope</span>
+      <span class="look">Spider Mask</span>
+      <span class="look">Pop Art</span>
+      <span class="look">Halftone</span>
+      <span class="look">Cel Shade</span>
+      <span class="look">Joint Toon</span>
+      <span class="look">Toon Shader</span>
+      <span class="look">Storybook</span>
+      <span class="look hi">Acid Lines</span>
+      <span class="look">Rainbow Heat</span>
+      <span class="look">Warp Checker</span>
+      <span class="look">Vortex</span>
+      <span class="look">Mandala</span>
+      <span class="look hi">Shroom World</span>
+      <span class="look">Acid Sunset</span>
+      <span class="look">Neon Face</span>
+    </div>
+    <p class="sub" style="margin-top:1.6rem">
+      On top of the look sits a layer of beat FX &mdash; Flash, Punch, Strobe,
+      Colour Strobe, Rotating Beams, Shake, Hue Cycle, Bass Warp and Drop Mix,
+      which scales its own intensity as a track builds.
+    </p>
+  </section>
+
+  <section class="wrap" id="how">
+    <p class="label">How it works</p>
+    <h2>Three things to set, then leave it alone.</h2>
+    <div class="steps">
+      <div class="step">
+        <span class="k">01</span>
+        <div>
+          <h3>Pick a camera</h3>
+          <p>Any USB webcam, capture card or phone-as-webcam. Devices are listed
+          by their real names, not "Camera 0".</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="k">02</span>
+        <div>
+          <h3>Pick the screen</h3>
+          <p>Go Live pushes a borderless fullscreen feed to your projector or TV
+          while the control panel stays on your laptop.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="k">03</span>
+        <div>
+          <h3>Arm Listen and switch on Auto Looks</h3>
+          <p>It finds the BPM, tracks the phrase and detects drops. From there it
+          runs the set on its own.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" id="beat">
+    <p class="label">Beat sync</p>
+    <h2>It reacts to the music, not just to loudness.</h2>
+    <p class="sub">
+      Onsets are detected per frequency band against a rolling average, and each
+      hit is scored on how sharp it is as well as how loud &mdash; so a breakdown
+      kick reads softer than a drop kick. BPM comes from the median of recent kick
+      intervals, and drops are found from bass presence and energy surge rather
+      than raw volume, which is why a loud filtered build doesn't fool it.
+    </p>
+    <div class="specs">
+      <div class="spec"><dt>Audio source</dt><dd>rekordbox captured directly, or any output / mic input</dd></div>
+      <div class="spec"><dt>Look changes</dt><dd>Every 4, 8 or 16 bars, plus on drops</dd></div>
+      <div class="spec"><dt>Latency</dt><dd>1&ndash;15&thinsp;ms per frame depending on look</dd></div>
+      <div class="spec"><dt>Cabling</dt><dd>None</dd></div>
+    </div>
+  </section>
+
+  <section class="wrap" id="pricing">
+    <p class="label">Pricing</p>
+    <h2>Free forever with a watermark. Twenty dollars to remove it.</h2>
+    <p class="sub">
+      One payment, yours permanently. No subscription, no per-gig fee, no account
+      required to use it.
+    </p>
+    <div class="plans">
+      <div class="plan">
+        <p class="tier">Free</p>
+        <p class="price">$0</p>
+        <ul>
+          <li>All 23 looks</li>
+          <li>Autopilot and beat FX</li>
+          <li>Projector output</li>
+          <li class="no">Watermark on the output</li>
+        </ul>
+        <a class="btn" href="#download">Download</a>
+      </div>
+      <div class="plan paid">
+        <p class="tier">Full</p>
+        <p class="price">$20 <small>once</small></p>
+        <ul>
+          <li>Everything in Free</li>
+          <li>No watermark</li>
+          <li>Use it anywhere, forever</li>
+          <li>All future updates</li>
+        </ul>
+        <a class="btn btn-primary" href="#download">Buy a licence</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" id="download">
+    <p class="label">Download</p>
+    <h2>One file. No installer, no dependencies.</h2>
+    <p class="sub">
+      Unzip it anywhere and run it. Nothing is installed into Windows and nothing
+      phones home &mdash; it works with no internet at all, which matters in a
+      basement with no signal.
+    </p>
+    <div class="cta-row" style="margin-top:2rem">
+      <a class="btn btn-primary" href="#" id="dl">Download for Windows</a>
+      <a class="btn" href="#pricing">Buy a licence &mdash; $20</a>
+    </div>
+    <div class="specs">
+      <div class="spec"><dt>System</dt><dd>Windows 10 or 11, 64-bit</dd></div>
+      <div class="spec"><dt>Disk</dt><dd>About 350&thinsp;MB unzipped</dd></div>
+      <div class="spec"><dt>Camera</dt><dd>Any webcam or capture device</dd></div>
+      <div class="spec"><dt>Display</dt><dd>A second screen or projector</dd></div>
+    </div>
+  </section>
+
+  <section class="wrap" id="faq">
+    <p class="label">Questions</p>
+    <h2>Before you download.</h2>
+    <div class="faq">
+      <details>
+        <summary>Windows says the file isn't safe. Is something wrong?</summary>
+        <p>No. The app isn't code-signed yet, so SmartScreen warns about it the
+        way it warns about any new independent release. Choose <em>More info</em>
+        then <em>Run anyway</em>. Signing is on the roadmap.</p>
+      </details>
+      <details>
+        <summary>Does it need an internet connection?</summary>
+        <p>No. Everything runs locally, including licence checks. Venues rarely
+        have usable wifi, so it was built not to need any.</p>
+      </details>
+      <details>
+        <summary>Which DJ software does it listen to?</summary>
+        <p>rekordbox is the confirmed path &mdash; it captures the app's audio
+        directly, with no cables. Serato, VirtualDJ and Traktor work through the
+        same app capture or through your output device. Anything audible can
+        drive it, including a mic pointed at the room.</p>
+      </details>
+      <details>
+        <summary>Do I need a powerful graphics card?</summary>
+        <p>Not for the eighteen live effects, which run on the processor. The four
+        painted styles use the GPU and want a DirectX 12 card to stay smooth.</p>
+      </details>
+      <details>
+        <summary>Do I need to be a DJ to use this?</summary>
+        <p>No. It listens to whatever is playing — rekordbox, Spotify, a phone
+        through the speakers, or just the room itself through a mic. If there's
+        music and a wall, it works.</p>
+      </details>
+      <details>
+        <summary>What's the catch with the free version?</summary>
+        <p>Only the watermark across the output. Every look, Autopilot and the
+        beat sync are all included, with no time limit and no account. The $20
+        licence removes the watermark, once, permanently.</p>
+      </details>
+    </div>
+  </section>
+  <section class="wrap" id="about">
+    <p class="label">About</p>
+    <h2>Built by Edgy Studios.</h2>
+    <p class="sub">
+      Make Party Alive started from a simple problem: the best parties happen in
+      living rooms, on rooftops and in rented villas &mdash; and all of them have a
+      wall nobody is using. Hiring a VJ for thirty friends makes no sense, so it
+      was built to need one camera, one spare HDMI port and no attention once
+      it's running. It's developed against real parties on real decks rather
+      than in a demo loop.
+    </p>
+    <div class="about-box">
+      <div>
+        <h3>Come say hello</h3>
+        <p>Setup help, bug reports and feature requests all happen in the
+        Discord. It's the fastest way to reach us, and where new looks get
+        shown off first.</p>
+      </div>
+      <a class="btn btn-primary" href="https://discord.gg/pwDHXHrHfw" target="_blank" rel="noopener">Join the Discord</a>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p>Made for house parties, sundowners, villa nights and small bars &mdash;
+  anywhere there's a crowd, a speaker and a spare wall.</p>
+  <p class="fine" style="margin-top:1.4rem">
+    &copy; Edgy Studios &middot;
+    <a href="https://discord.gg/pwDHXHrHfw" target="_blank" rel="noopener">Discord</a>
+  </p>
+</footer>
+
+<script>
+(function () {
+  var canvas = document.getElementById('field');
+  var ctx = canvas.getContext('2d', { alpha: true });
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Downscaled buffer — the contours are computed at low resolution and
+  // scaled up, the same way Acid Lines works in the app: blur the luminance,
+  // quantise it into bands, and draw the boundary between two bands.
+  var BW = 200, BH = 120;
+  var buf = ctx.createImageData(BW, BH);
+  var band = new Int16Array(BW * BH);
+
+  var off = document.createElement('canvas');
+  off.width = BW; off.height = BH;
+  var octx = off.getContext('2d');
+
+  function resize() {
+    var r = canvas.getBoundingClientRect();
+    canvas.width = Math.max(1, Math.floor(r.width));
+    canvas.height = Math.max(1, Math.floor(r.height));
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Simulated transport so the hero reads like the app's own HUD.
+  var BPM = 128, SPB = 60 / BPM, BARS = 32;
+  var start = performance.now() / 1000;
+  var hud = document.getElementById('hudtext');
+  var pip = document.getElementById('pip');
+
+  var blobs = [
+    { x: .30, y: .45, r: .30, sx: .07, sy: .05, p: 0 },
+    { x: .68, y: .38, r: .26, sx: -.05, sy: .08, p: 1.9 },
+    { x: .50, y: .70, r: .34, sx: .09, sy: -.04, p: 3.4 },
+    { x: .82, y: .66, r: .22, sx: -.08, sy: -.06, p: 5.1 }
+  ];
+
+  var last = 0;
+  function frame(now) {
+    var t = now / 1000 - start;
+
+    // ~30fps is plenty for contour bands and keeps this cheap in the background.
+    if (now - last < 33) { requestAnimationFrame(frame); return; }
+    last = now;
+
+    var beat = t / SPB;
+    var beatsIn = Math.floor(beat) % BARS;
+    var toNext = BARS - beatsIn;
+    // Treat the last 4 beats of each phrase as the build into a drop.
+    var dropping = toNext <= 4;
+    var pulse = Math.max(0, 1 - (beat - Math.floor(beat)) * 2.2);
+
+    if (hud) {
+      hud.textContent = BPM + ' BPM · ' + (dropping ? 'DROP' : 'calm') +
+                        ' · next ' + toNext + 'b';
+    }
+    if (pip) {
+      pip.style.background = dropping ? '#FF3B5C' : '#22D3EE';
+      pip.style.opacity = String(0.35 + pulse * 0.65);
+    }
+
+    var data = buf.data;
+    var kick = 1 + pulse * (dropping ? 0.22 : 0.08);
+
+    for (var i = 0; i < blobs.length; i++) {
+      var b = blobs[i];
+      b.cx = b.x + Math.sin(t * b.sx * 2.4 + b.p) * 0.16;
+      b.cy = b.y + Math.cos(t * b.sy * 2.4 + b.p) * 0.13;
+      b.cr = b.r * kick;
+    }
+
+    for (var y = 0; y < BH; y++) {
+      var fy = y / BH;
+      for (var x = 0; x < BW; x++) {
+        var fx = x / BW;
+        var v = 0;
+        for (var k = 0; k < blobs.length; k++) {
+          var bb = blobs[k];
+          var dx = fx - bb.cx, dy = (fy - bb.cy) * 0.62;
+          var d2 = dx * dx + dy * dy;
+          v += (bb.cr * bb.cr) / (d2 + 0.004);
+        }
+        // Quantise the smooth field into discrete luminance bands.
+        band[y * BW + x] = Math.floor(Math.sqrt(v) * 3.4);
+      }
+    }
+
+    // The boundary between two bands IS the contour line.
+    for (var yy = 0; yy < BH; yy++) {
+      for (var xx = 0; xx < BW; xx++) {
+        var idx = yy * BW + xx;
+        var here = band[idx];
+        var edge = (xx < BW - 1 && band[idx + 1] !== here) ||
+                   (yy < BH - 1 && band[idx + BW] !== here);
+        var o = idx * 4;
+        if (edge) {
+          var warm = dropping ? 1 : 0;
+          data[o]     = warm ? 255 : 34;
+          data[o + 1] = warm ? 59  : 211;
+          data[o + 2] = warm ? 92  : 238;
+          data[o + 3] = 200;
+        } else {
+          data[o + 3] = 0;
+        }
+      }
+    }
+
+    octx.putImageData(buf, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(off, 0, 0, canvas.width, canvas.height);
+
+    requestAnimationFrame(frame);
+  }
+
+  if (reduced) {
+    // Draw a single static frame rather than animating.
+    requestAnimationFrame(function (n) { last = -1e9; frame(n); last = 1e9; });
+  } else {
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
