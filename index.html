@@ -105,18 +105,62 @@
 
   /* ---------- hero ---------- */
   .hero { position: relative; border-bottom: 1px solid var(--line-soft); }
-  #field {
+  .hero-media { position: absolute; inset: 0; overflow: hidden; }
+  .hero-video {
     position: absolute; inset: 0; width: 100%; height: 100%;
-    display: block; opacity: .5;
+    object-fit: cover; object-position: center 30%;
+    display: block; opacity: .68;
   }
   .hero::after {
     content: ""; position: absolute; inset: 0;
-    background: linear-gradient(to bottom,
-      color-mix(in srgb, var(--ground) 30%, transparent) 0%,
-      color-mix(in srgb, var(--ground) 75%, transparent) 55%,
-      var(--ground) 100%);
+    /* Two layers: the original top-to-bottom fade, plus a left-to-right one
+       so the text column stays readable no matter what part of the video
+       object-fit:cover happens to crop in behind it — on narrow viewports
+       the crop can land the brightest part of the clip right where the
+       headline sits, and the vertical fade alone doesn't reach there. */
+    background:
+      linear-gradient(to right,
+        var(--ground) 0%,
+        color-mix(in srgb, var(--ground) 78%, transparent) 42%,
+        transparent 68%),
+      linear-gradient(to bottom,
+        color-mix(in srgb, var(--ground) 30%, transparent) 0%,
+        color-mix(in srgb, var(--ground) 75%, transparent) 55%,
+        var(--ground) 100%);
     pointer-events: none;
   }
+
+  /* Real footage, so this earns an honest "LIVE" marker — not shown over any
+     synthetic/generated background. */
+  .live-badge {
+    position: absolute; top: 1.1rem; right: 1.1rem; z-index: 3;
+    display: inline-flex; align-items: center; gap: .45rem;
+    font-family: var(--mono); font-size: .68rem; font-weight: 700;
+    letter-spacing: .1em; color: var(--text);
+    background: rgba(11, 11, 16, .55); backdrop-filter: blur(6px);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: .35rem .7rem .35rem .6rem;
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--hot);
+    box-shadow: 0 0 8px var(--hot);
+    animation: live-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes live-pulse {
+    0%, 100% { opacity: 1; } 50% { opacity: .35; }
+  }
+  @media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
+
+  .mute-btn {
+    position: absolute; bottom: 1.1rem; right: 1.1rem; z-index: 3;
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; padding: 0;
+    color: var(--text);
+    background: rgba(11, 11, 16, .55); backdrop-filter: blur(6px);
+    border: 1px solid var(--line); border-radius: 999px;
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .mute-btn:hover { background: rgba(35, 36, 48, .75); border-color: #4A4C60; }
   .hero-in {
     position: relative; z-index: 2;
     padding-block: clamp(4rem, 12vw, 8.5rem) clamp(3rem, 8vw, 5rem);
@@ -317,7 +361,24 @@
 </nav>
 
 <header class="hero" id="top">
-  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="hero-media">
+    <video id="heroVideo" class="hero-video" autoplay muted loop playsinline
+           poster="media/hero-poster.jpg" aria-hidden="true">
+      <source src="media/hero-loop.webm" type="video/webm">
+      <source src="media/hero-loop.mp4" type="video/mp4">
+    </video>
+    <div class="live-badge"><span class="live-dot"></span>LIVE</div>
+    <button class="mute-btn" id="muteBtn" type="button" aria-label="Unmute video" aria-pressed="true">
+      <svg id="muteIconOff" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+        <path fill="currentColor" d="M4 9v6h4l5 5V4L8 9H4z"/>
+        <path fill="currentColor" d="M17.5 12 20 9.5l-1-1L16.5 11 14 8.5l-1 1 2.5 2.5-2.5 2.5 1 1 2.5-2.5 2.5 2.5 1-1z"/>
+      </svg>
+      <svg id="muteIconOn" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="display:none">
+        <path fill="currentColor" d="M4 9v6h4l5 5V4L8 9H4z"/>
+        <path fill="currentColor" d="M16 8.3a5 5 0 0 1 0 7.4v-1.9a3.3 3.3 0 0 0 0-3.6V8.3zM16 4.8a8.5 8.5 0 0 1 0 14.4v-2a6.8 6.8 0 0 0 0-10.4V4.8z"/>
+      </svg>
+    </button>
+  </div>
   <div class="wrap hero-in">
     <p class="eyebrow">Automatic crowd visuals &middot; Windows</p>
     <div class="hud"><span class="pip" id="pip"></span><span id="hudtext">128 BPM &middot; calm &middot; next 24b</span></div>
@@ -599,54 +660,21 @@
 
 <script>
 (function () {
-  var canvas = document.getElementById('field');
-  var ctx = canvas.getContext('2d', { alpha: true });
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Downscaled buffer — the contours are computed at low resolution and
-  // scaled up, the same way Acid Lines works in the app: blur the luminance,
-  // quantise it into bands, and draw the boundary between two bands.
-  var BW = 200, BH = 120;
-  var buf = ctx.createImageData(BW, BH);
-  var band = new Int16Array(BW * BH);
-
-  var off = document.createElement('canvas');
-  off.width = BW; off.height = BH;
-  var octx = off.getContext('2d');
-
-  function resize() {
-    var r = canvas.getBoundingClientRect();
-    canvas.width = Math.max(1, Math.floor(r.width));
-    canvas.height = Math.max(1, Math.floor(r.height));
-  }
-  window.addEventListener('resize', resize);
-  resize();
-
-  // Simulated transport so the hero reads like the app's own HUD.
+  // Simulated transport so the HUD badge reads like the app's own beat
+  // display. No canvas work here any more — the hero background is the real
+  // clip now, this timer only drives the small text/pip badge above it.
   var BPM = 128, SPB = 60 / BPM, BARS = 32;
   var start = performance.now() / 1000;
   var hud = document.getElementById('hudtext');
   var pip = document.getElementById('pip');
 
-  var blobs = [
-    { x: .30, y: .45, r: .30, sx: .07, sy: .05, p: 0 },
-    { x: .68, y: .38, r: .26, sx: -.05, sy: .08, p: 1.9 },
-    { x: .50, y: .70, r: .34, sx: .09, sy: -.04, p: 3.4 },
-    { x: .82, y: .66, r: .22, sx: -.08, sy: -.06, p: 5.1 }
-  ];
-
-  var last = 0;
-  function frame(now) {
-    var t = now / 1000 - start;
-
-    // ~30fps is plenty for contour bands and keeps this cheap in the background.
-    if (now - last < 33) { requestAnimationFrame(frame); return; }
-    last = now;
-
+  function tick() {
+    var t = performance.now() / 1000 - start;
     var beat = t / SPB;
     var beatsIn = Math.floor(beat) % BARS;
     var toNext = BARS - beatsIn;
-    // Treat the last 4 beats of each phrase as the build into a drop.
     var dropping = toNext <= 4;
     var pulse = Math.max(0, 1 - (beat - Math.floor(beat)) * 2.2);
 
@@ -658,66 +686,33 @@
       pip.style.background = dropping ? '#FF3B5C' : '#22D3EE';
       pip.style.opacity = String(0.35 + pulse * 0.65);
     }
-
-    var data = buf.data;
-    var kick = 1 + pulse * (dropping ? 0.22 : 0.08);
-
-    for (var i = 0; i < blobs.length; i++) {
-      var b = blobs[i];
-      b.cx = b.x + Math.sin(t * b.sx * 2.4 + b.p) * 0.16;
-      b.cy = b.y + Math.cos(t * b.sy * 2.4 + b.p) * 0.13;
-      b.cr = b.r * kick;
-    }
-
-    for (var y = 0; y < BH; y++) {
-      var fy = y / BH;
-      for (var x = 0; x < BW; x++) {
-        var fx = x / BW;
-        var v = 0;
-        for (var k = 0; k < blobs.length; k++) {
-          var bb = blobs[k];
-          var dx = fx - bb.cx, dy = (fy - bb.cy) * 0.62;
-          var d2 = dx * dx + dy * dy;
-          v += (bb.cr * bb.cr) / (d2 + 0.004);
-        }
-        // Quantise the smooth field into discrete luminance bands.
-        band[y * BW + x] = Math.floor(Math.sqrt(v) * 3.4);
-      }
-    }
-
-    // The boundary between two bands IS the contour line.
-    for (var yy = 0; yy < BH; yy++) {
-      for (var xx = 0; xx < BW; xx++) {
-        var idx = yy * BW + xx;
-        var here = band[idx];
-        var edge = (xx < BW - 1 && band[idx + 1] !== here) ||
-                   (yy < BH - 1 && band[idx + BW] !== here);
-        var o = idx * 4;
-        if (edge) {
-          var warm = dropping ? 1 : 0;
-          data[o]     = warm ? 255 : 34;
-          data[o + 1] = warm ? 59  : 211;
-          data[o + 2] = warm ? 92  : 238;
-          data[o + 3] = 200;
-        } else {
-          data[o + 3] = 0;
-        }
-      }
-    }
-
-    octx.putImageData(buf, 0, 0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(off, 0, 0, canvas.width, canvas.height);
-
-    requestAnimationFrame(frame);
   }
+  tick();
+  if (!reduced) setInterval(tick, 120);
 
-  if (reduced) {
-    // Draw a single static frame rather than animating.
-    requestAnimationFrame(function (n) { last = -1e9; frame(n); last = 1e9; });
-  } else {
-    requestAnimationFrame(frame);
+  // Hero video: paused (poster frame only) for reduced-motion visitors,
+  // otherwise autoplaying muted per browser policy — the mute button only
+  // ever toggles sound, playback state is untouched by it either way.
+  var video = document.getElementById('heroVideo');
+  var muteBtn = document.getElementById('muteBtn');
+  var iconOff = document.getElementById('muteIconOff'); // shown while muted
+  var iconOn = document.getElementById('muteIconOn');    // shown while unmuted
+
+  if (video) {
+    if (reduced) {
+      video.removeAttribute('autoplay');
+      video.pause();
+    }
+    if (muteBtn) {
+      muteBtn.addEventListener('click', function () {
+        video.muted = !video.muted;
+        var unmuted = !video.muted;
+        iconOff.style.display = unmuted ? 'none' : '';
+        iconOn.style.display = unmuted ? '' : 'none';
+        muteBtn.setAttribute('aria-label', unmuted ? 'Mute video' : 'Unmute video');
+        muteBtn.setAttribute('aria-pressed', String(video.muted));
+      });
+    }
   }
 })();
 </script>
