@@ -220,13 +220,16 @@
   .plans {
     display: grid; gap: 1.2rem; margin-top: 2.5rem;
     grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-    max-width: 760px; align-items: start;
+    max-width: 920px; align-items: start;
   }
   .plan {
     border: 1px solid var(--line-soft); border-radius: 8px;
     background: var(--panel); padding: 1.7rem 1.6rem;
   }
   .plan.paid { border-color: var(--accent); }
+  .plan.custom {
+    border-style: dashed; border-color: #4A4C60;
+  }
   .plan .tier {
     font-family: var(--mono); font-size: .74rem; letter-spacing: .14em;
     text-transform: uppercase; color: var(--dim); margin: 0 0 .8rem;
@@ -453,7 +456,7 @@
     <h2>Free forever with a watermark. Twenty dollars to remove it.</h2>
     <p class="sub">
       One payment, yours permanently. No subscription, no per-gig fee, no account
-      required to use it.
+      required to use it. Want your own brand on it instead? See Professional.
     </p>
     <div class="plans">
       <div class="plan">
@@ -468,7 +471,7 @@
         <a class="btn" href="#download">Download</a>
       </div>
       <div class="plan paid">
-        <p class="tier">Full</p>
+        <p class="tier">Pro</p>
         <p class="price">$20 <small>once</small></p>
         <ul>
           <li>Everything in Free</li>
@@ -477,6 +480,17 @@
           <li>All future updates</li>
         </ul>
         <a class="btn btn-primary" href="https://harshyad12.gumroad.com/l/makepartyalive?wanted=true" target="_blank" rel="noopener">Buy a licence</a>
+      </div>
+      <div class="plan custom">
+        <p class="tier">Professional</p>
+        <p class="price">Custom</p>
+        <ul>
+          <li>Everything in Pro</li>
+          <li>Your brand name in the app</li>
+          <li>Extra effects, built to your brief</li>
+          <li>Custom on-screen text &amp; graphics</li>
+        </ul>
+        <a class="btn" href="mailto:harshyadav662k@gmail.com?subject=Make%20Party%20Alive%20%E2%80%94%20Professional%20enquiry&body=Tell%20us%20a%20bit%20about%20what%20you%20need%3A%0A%0A-%20Brand/venue%20name%20to%20put%20in%20the%20app%3A%0A-%20Effects%20you%20want%20built%20%28describe%20the%20look%29%3A%0A-%20On-screen%20text/graphics%20you%20want%20shown%3A%0A-%20When%20you%20need%20it%20by%3A%0A">Email us</a>
       </div>
     </div>
   </section>
