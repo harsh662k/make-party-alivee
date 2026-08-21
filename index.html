@@ -14,14 +14,18 @@
 
 <style>
   :root {
-    --ground:  #0B0B10;
-    --panel:   #16161C;
-    --raised:  #232430;
-    --line:    #3A3B4A;
-    --line-soft: #24252F;
-    --text:    #E8E8F0;
-    --dim:     #9A9AAB;
-    --accent:  #22D3EE;
+    /* True black/white, per direction — not a defaulted neutral. The only
+       colour left anywhere on the page is --hot, kept for exactly one job:
+       the LIVE dot and the beat-drop pulse, same convention as a camera's
+       tally light. Everything else is black, white, or grey. */
+    --ground:  #000000;
+    --panel:   #0E0E0E;
+    --raised:  #1B1B1B;
+    --line:    rgba(255, 255, 255, .16);
+    --line-soft: rgba(255, 255, 255, .09);
+    --text:    #FFFFFF;
+    --dim:     #8C8C8C;
+    --invert:  #000000;
     --hot:     #FF3B5C;
 
     --display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
@@ -29,6 +33,7 @@
 
     --measure: 64ch;
     --pad: clamp(1.25rem, 4vw, 3rem);
+    --r: 14px;     /* card corner radius, reused everywhere for consistency */
   }
 
   * { box-sizing: border-box; }
@@ -52,10 +57,10 @@
     padding-inline: var(--pad);
   }
 
-  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a { color: var(--text); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 
   :focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--text);
     outline-offset: 3px;
   }
 
@@ -77,7 +82,6 @@
   }
   .brand img {
     width: 28px; height: 28px; border-radius: 7px;
-    box-shadow: 0 0 14px rgba(34, 211, 238, 0.35);
   }
   .nav a.link {
     font-family: var(--mono); font-size: .78rem; color: var(--dim);
@@ -90,18 +94,18 @@
     display: inline-block;
     font-family: var(--mono); font-size: .82rem; font-weight: 500;
     letter-spacing: .02em;
-    padding: .62rem 1.1rem; border-radius: 6px;
+    padding: .68rem 1.3rem; border-radius: 999px;
     border: 1px solid var(--line);
-    background: var(--raised); color: var(--text);
+    background: transparent; color: var(--text);
     text-decoration: none; white-space: nowrap;
-    transition: background .15s ease, border-color .15s ease;
+    transition: background .15s ease, border-color .15s ease, transform .15s ease;
   }
-  .btn:hover { background: #2E3040; border-color: #4A4C60; }
+  .btn:hover { background: var(--raised); border-color: rgba(255,255,255,.32); transform: translateY(-1px); }
   .btn-primary {
-    background: var(--accent); border-color: var(--accent); color: #06171C;
+    background: var(--text); border-color: var(--text); color: var(--invert);
     font-weight: 700;
   }
-  .btn-primary:hover { background: #4BE0F5; border-color: #4BE0F5; }
+  .btn-primary:hover { background: #D8D8D8; border-color: #D8D8D8; }
 
   /* ---------- hero ---------- */
   .hero { position: relative; border-bottom: 1px solid var(--line-soft); }
@@ -109,7 +113,8 @@
   .hero-video {
     position: absolute; inset: 0; width: 100%; height: 100%;
     object-fit: cover; object-position: center 30%;
-    display: block; opacity: .68;
+    display: block; opacity: .78;
+    filter: grayscale(1) contrast(1.08);
   }
   .hero::after {
     content: ""; position: absolute; inset: 0;
@@ -167,7 +172,7 @@
   }
   .eyebrow {
     font-family: var(--mono); font-size: .74rem; letter-spacing: .16em;
-    text-transform: uppercase; color: var(--accent); margin: 0 0 1.4rem;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 1.4rem;
   }
   h1 {
     font-size: clamp(2.7rem, 8.5vw, 5.4rem);
@@ -226,14 +231,18 @@
   .sub { color: var(--dim); max-width: 58ch; margin-top: 0; }
 
   .pillars {
-    display: grid; gap: 1px; background: var(--line-soft);
-    border: 1px solid var(--line-soft); border-radius: 8px; overflow: hidden;
+    display: grid; gap: 1rem;
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     margin-top: 2.5rem;
   }
-  .pillar { background: var(--panel); padding: 1.6rem 1.5rem; }
+  .pillar {
+    background: var(--panel); padding: 1.7rem 1.6rem;
+    border: 1px solid var(--line-soft); border-radius: var(--r);
+    transition: border-color .2s ease, transform .2s ease;
+  }
+  .pillar:hover { border-color: var(--line); transform: translateY(-3px); }
   .pillar .n {
-    font-family: var(--mono); font-size: .72rem; color: var(--accent);
+    font-family: var(--mono); font-size: .72rem; color: var(--text);
     letter-spacing: .1em; display: block; margin-bottom: .9rem;
   }
   .pillar p { color: var(--dim); font-size: .93rem; margin: 0; }
@@ -249,13 +258,13 @@
     border: 1px solid var(--line); background: var(--panel);
     color: var(--dim);
   }
-  .look.hi { color: #06171C; background: var(--accent); border-color: var(--accent); font-weight: 500; }
+  .look.hi { color: var(--invert); background: var(--text); border-color: var(--text); font-weight: 500; }
 
   /* steps */
   .steps { counter-reset: s; margin-top: 2.4rem; display: grid; gap: 1.6rem; max-width: 640px; }
   .step { display: flex; gap: 1.1rem; align-items: baseline; }
   .step .k {
-    font-family: var(--mono); font-size: .78rem; color: var(--accent);
+    font-family: var(--mono); font-size: .78rem; color: var(--dim);
     flex: none; width: 2.2rem;
   }
   .step p { margin: .3rem 0 0; color: var(--dim); font-size: .94rem; }
@@ -267,23 +276,33 @@
     max-width: 920px; align-items: start;
   }
   .plan {
-    border: 1px solid var(--line-soft); border-radius: 8px;
+    position: relative;
+    border: 1px solid var(--line-soft); border-radius: var(--r);
     background: var(--panel); padding: 1.7rem 1.6rem;
+    transition: border-color .2s ease, transform .2s ease;
   }
-  .plan.paid { border-color: var(--accent); }
-  .plan.custom {
-    border-style: dashed; border-color: #4A4C60;
+  .plan:hover { transform: translateY(-3px); }
+  /* Weight, not hue, marks the recommended tier in a monochrome system —
+     a visibly thicker border plus a small badge does the job colour used to. */
+  .plan.paid { border: 2px solid var(--text); padding: calc(1.7rem - 1px) calc(1.6rem - 1px); }
+  .plan-badge {
+    position: absolute; top: -.7rem; left: 1.4rem;
+    background: var(--text); color: var(--invert);
+    font-family: var(--mono); font-size: .66rem; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: .25rem .6rem; border-radius: 999px;
   }
+  .plan.custom { border-style: dashed; border-color: var(--line); }
   .mail-fallback {
     font-size: .78rem; color: var(--dim); margin: .7rem 0 0;
   }
   .mail-fallback a { color: var(--dim); text-decoration-style: dotted; }
-  .mail-fallback a:hover { color: var(--accent); }
+  .mail-fallback a:hover { color: var(--text); }
   .plan .tier {
     font-family: var(--mono); font-size: .74rem; letter-spacing: .14em;
     text-transform: uppercase; color: var(--dim); margin: 0 0 .8rem;
   }
-  .plan.paid .tier { color: var(--accent); }
+  .plan.paid .tier { color: var(--text); }
   .price {
     font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em;
     line-height: 1; margin: 0 0 .3rem; font-variant-numeric: tabular-nums;
@@ -296,7 +315,7 @@
   }
   .plan li::before {
     content: "+"; position: absolute; left: 0; top: -1px;
-    font-family: var(--mono); color: var(--accent);
+    font-family: var(--mono); color: var(--text);
   }
   .plan li.no { color: #6E6E7E; }
   .plan li.no::before { content: "\2013"; color: #5A5A6A; }
@@ -312,19 +331,23 @@
   }
   summary::-webkit-details-marker { display: none; }
   summary::before {
-    content: "+"; font-family: var(--mono); color: var(--accent);
+    content: "+"; font-family: var(--mono); color: var(--text);
     flex: none; font-size: .95rem;
   }
   details[open] summary::before { content: "\2013"; }
   details p { margin: .8rem 0 0 1.6rem; color: var(--dim); font-size: .94rem; }
 
   .specs {
-    display: grid; gap: 1px; background: var(--line-soft);
-    border: 1px solid var(--line-soft); border-radius: 8px; overflow: hidden;
+    display: grid; gap: .9rem;
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     margin-top: 2rem; max-width: 800px;
   }
-  .spec { background: var(--panel); padding: 1.1rem 1.2rem; }
+  .spec {
+    background: var(--panel); padding: 1.15rem 1.25rem;
+    border: 1px solid var(--line-soft); border-radius: var(--r);
+    transition: border-color .2s ease;
+  }
+  .spec:hover { border-color: var(--line); }
   .spec dt {
     font-family: var(--mono); font-size: .7rem; letter-spacing: .12em;
     text-transform: uppercase; color: var(--dim); margin-bottom: .35rem;
@@ -333,12 +356,36 @@
 
   .about-box {
     margin-top: 2.4rem; max-width: 760px;
-    border: 1px solid var(--line-soft); border-radius: 8px;
+    border: 1px solid var(--line-soft); border-radius: var(--r);
     background: var(--panel); padding: 1.6rem;
     display: flex; align-items: center; gap: 1.6rem; flex-wrap: wrap;
   }
   .about-box > div { flex: 1 1 300px; }
   .about-box p { margin: 0; color: var(--dim); font-size: .93rem; }
+
+  /* Scroll reveal — sections and cards settle in as they cross the
+     viewport, one-shot (no re-trigger scrolling back up). Respects
+     prefers-reduced-motion by being skipped in JS below entirely, so
+     nothing here needs its own reduced-motion branch. */
+  .reveal {
+    opacity: 0; transform: translateY(22px);
+    transition: opacity .7s cubic-bezier(.16,.8,.3,1),
+                transform .7s cubic-bezier(.16,.8,.3,1);
+  }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+  .reveal-stagger.in > * {
+    animation: reveal-stagger-in .6s cubic-bezier(.16,.8,.3,1) both;
+  }
+  .reveal-stagger.in > *:nth-child(1) { animation-delay: 0ms; }
+  .reveal-stagger.in > *:nth-child(2) { animation-delay: 45ms; }
+  .reveal-stagger.in > *:nth-child(3) { animation-delay: 90ms; }
+  .reveal-stagger.in > *:nth-child(4) { animation-delay: 135ms; }
+  .reveal-stagger.in > *:nth-child(5) { animation-delay: 180ms; }
+  .reveal-stagger.in > *:nth-child(n+6) { animation-delay: 220ms; }
+  @keyframes reveal-stagger-in {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
   footer {
     border-top: 1px solid var(--line-soft);
@@ -399,7 +446,7 @@
 <main>
   <section class="wrap" id="why">
     <p class="label">The difference</p>
-    <h2>Every other visual tool plays clips. This one plays the room.</h2>
+    <h2 class="reveal">Every other visual tool plays clips. This one plays the room.</h2>
     <p class="sub">
       VJ software gives you a media library and expects somebody to stand behind
       a laptop operating it. Music visualisers draw generative shapes that have
@@ -407,7 +454,7 @@
       actual crowd and turns them into the artwork &mdash; which is why people film it.
     </p>
 
-    <div class="pillars">
+    <div class="pillars reveal-stagger">
       <div class="pillar">
         <span class="n">01</span>
         <h3>The crowd is the content</h3>
@@ -431,12 +478,12 @@
 
   <section class="wrap" id="looks">
     <p class="label">23 looks</p>
-    <h2>Four painted styles, eighteen live effects, one passthrough.</h2>
+    <h2 class="reveal">Four painted styles, eighteen live effects, one passthrough.</h2>
     <p class="sub">
       Pick one and leave it, or let Autopilot cycle the ones you've ticked.
       Painted styles run on the GPU at around 15&thinsp;ms a frame.
     </p>
-    <div class="looks">
+    <div class="looks reveal-stagger">
       <span class="look">Raw</span>
       <span class="look">Candy</span>
       <span class="look">Mosaic</span>
@@ -470,8 +517,8 @@
 
   <section class="wrap" id="how">
     <p class="label">How it works</p>
-    <h2>Three things to set, then leave it alone.</h2>
-    <div class="steps">
+    <h2 class="reveal">Three things to set, then leave it alone.</h2>
+    <div class="steps reveal-stagger">
       <div class="step">
         <span class="k">01</span>
         <div>
@@ -501,7 +548,7 @@
 
   <section class="wrap" id="beat">
     <p class="label">Beat sync</p>
-    <h2>It reacts to the music, not just to loudness.</h2>
+    <h2 class="reveal">It reacts to the music, not just to loudness.</h2>
     <p class="sub">
       Onsets are detected per frequency band against a rolling average, and each
       hit is scored on how sharp it is as well as how loud &mdash; so a breakdown
@@ -509,7 +556,7 @@
       intervals, and drops are found from bass presence and energy surge rather
       than raw volume, which is why a loud filtered build doesn't fool it.
     </p>
-    <div class="specs">
+    <div class="specs reveal-stagger">
       <div class="spec"><dt>Audio source</dt><dd>rekordbox captured directly, or any output / mic input</dd></div>
       <div class="spec"><dt>Look changes</dt><dd>Every 4, 8 or 16 bars, plus on drops</dd></div>
       <div class="spec"><dt>Latency</dt><dd>1&ndash;15&thinsp;ms per frame depending on look</dd></div>
@@ -519,12 +566,12 @@
 
   <section class="wrap" id="pricing">
     <p class="label">Pricing</p>
-    <h2>Free forever with a watermark. Twenty dollars to remove it.</h2>
+    <h2 class="reveal">Free forever with a watermark. Twenty dollars to remove it.</h2>
     <p class="sub">
       One payment, yours permanently. No subscription, no per-gig fee, no account
       required to use it. Want your own brand on it instead? See Professional.
     </p>
-    <div class="plans">
+    <div class="plans reveal-stagger">
       <div class="plan">
         <p class="tier">Free</p>
         <p class="price">$0</p>
@@ -537,6 +584,7 @@
         <a class="btn" href="#download">Download</a>
       </div>
       <div class="plan paid">
+        <span class="plan-badge">Most popular</span>
         <p class="tier">Pro</p>
         <p class="price">$20 <small>once</small></p>
         <ul>
@@ -567,7 +615,7 @@
 
   <section class="wrap" id="download">
     <p class="label">Download</p>
-    <h2>One file. No installer, no dependencies.</h2>
+    <h2 class="reveal">One file. No installer, no dependencies.</h2>
     <p class="sub">
       Unzip it anywhere and run it. Nothing is installed into Windows and nothing
       phones home &mdash; it works with no internet at all, which matters in a
@@ -577,7 +625,7 @@
       <a class="btn btn-primary" href="https://github.com/harsh662k/make-party-alivee/releases/download/v1.0.0/MakePartyAlive-1.0.0-win-x64.zip" id="dl">Download for Windows</a>
       <a class="btn" href="https://harshyad12.gumroad.com/l/makepartyalive?wanted=true" target="_blank" rel="noopener">Buy a licence &mdash; $20</a>
     </div>
-    <div class="specs">
+    <div class="specs reveal-stagger">
       <div class="spec"><dt>System</dt><dd>Windows 10 or 11, 64-bit</dd></div>
       <div class="spec"><dt>Disk</dt><dd>About 350&thinsp;MB unzipped</dd></div>
       <div class="spec"><dt>Camera</dt><dd>Any webcam or capture device</dd></div>
@@ -587,8 +635,8 @@
 
   <section class="wrap" id="faq">
     <p class="label">Questions</p>
-    <h2>Before you download.</h2>
-    <div class="faq">
+    <h2 class="reveal">Before you download.</h2>
+    <div class="faq reveal-stagger">
       <details>
         <summary>Windows says the file isn't safe. Is something wrong?</summary>
         <p>No. The app isn't code-signed yet, so SmartScreen warns about it the
@@ -628,7 +676,7 @@
   </section>
   <section class="wrap" id="about">
     <p class="label">About</p>
-    <h2>Built by Edgy Studios.</h2>
+    <h2 class="reveal">Built by Edgy Studios.</h2>
     <p class="sub">
       Make Party Alive started from a simple problem: the best parties happen in
       living rooms, on rooftops and in rented villas &mdash; and all of them have a
@@ -637,7 +685,7 @@
       it's running. It's developed against real parties on real decks rather
       than in a demo loop.
     </p>
-    <div class="about-box">
+    <div class="about-box reveal">
       <div>
         <h3>Come say hello</h3>
         <p>Setup help, bug reports and feature requests all happen in the
@@ -683,7 +731,7 @@
                         ' · next ' + toNext + 'b';
     }
     if (pip) {
-      pip.style.background = dropping ? '#FF3B5C' : '#22D3EE';
+      pip.style.background = dropping ? '#FF3B5C' : '#FFFFFF';
       pip.style.opacity = String(0.35 + pulse * 0.65);
     }
   }
@@ -713,6 +761,25 @@
         muteBtn.setAttribute('aria-pressed', String(video.muted));
       });
     }
+  }
+
+  // Scroll reveal. One-shot per element — once it's played in, it stays in,
+  // rather than re-animating every time a section re-enters the viewport
+  // (that reads as flickery, not premium). Reduced-motion visitors get
+  // everything visible immediately instead of an observer.
+  var revealEls = document.querySelectorAll('.reveal, .reveal-stagger');
+  if (reduced || !('IntersectionObserver' in window)) {
+    revealEls.forEach(function (el) { el.classList.add('in'); });
+  } else {
+    var io_ = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io_.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+    revealEls.forEach(function (el) { io_.observe(el); });
   }
 })();
 </script>
