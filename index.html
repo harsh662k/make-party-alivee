@@ -352,6 +352,31 @@
   .buy-opt-title { display: block; font-weight: 700; font-size: .98rem; margin-bottom: .25rem; }
   .buy-opt-sub { display: block; font-family: var(--mono); font-size: .74rem; color: var(--dim); }
 
+  /* UPI option is a div, not a link — it holds its own form, so the
+     card-hover affordance (border/bg/lift) meant for a click target is
+     wrong here. */
+  .buy-opt-form:hover { border-color: var(--line); background: transparent; transform: none; }
+  .upi-form { display: flex; gap: .5rem; margin-top: .9rem; }
+  .upi-input {
+    flex: 1; min-width: 0;
+    font-family: var(--mono); font-size: .84rem; color: var(--text);
+    background: var(--ground); border: 1px solid var(--line); border-radius: 8px;
+    padding: .55rem .7rem;
+  }
+  .upi-input::placeholder { color: #5A5A6A; }
+  .upi-input:focus { outline: none; border-color: var(--text); }
+  .upi-send {
+    font-family: var(--mono); font-size: .82rem; font-weight: 600;
+    padding: .55rem 1.1rem; border-radius: 8px;
+    border: 1px solid var(--text); background: var(--text); color: var(--invert);
+    cursor: pointer; white-space: nowrap;
+  }
+  .upi-send:hover { background: #D8D8D8; }
+  .upi-error {
+    display: block; margin-top: .5rem;
+    font-family: var(--mono); font-size: .72rem; color: var(--hot);
+  }
+
   /* faq + specs */
   .faq { margin-top: 2rem; max-width: 760px; }
   details {
@@ -741,10 +766,15 @@
     <p class="tier" id="buyModalTitle" style="color:var(--text)">Buy a licence &mdash; $20</p>
     <p class="sub" style="margin:0">One-time payment, removes the watermark, yours forever.</p>
     <div class="buy-options">
-      <a class="buy-opt" href="mailto:harshyadav662k@gmail.com?subject=Make%20Party%20Alive%20%E2%80%94%20UPI%20licence&amp;body=Hey%2C%20I%27d%20like%20to%20buy%20a%20licence%20via%20UPI.%0A%0AName%3A%0A">
+      <div class="buy-opt buy-opt-form">
         <span class="buy-opt-title">Pay by UPI</span>
-        <span class="buy-opt-sub">India &middot; emails us, we send the UPI ID and your key back by mail</span>
-      </a>
+        <span class="buy-opt-sub">India &middot; enter your email, we'll reply with the UPI ID and your key</span>
+        <form id="upiForm" class="upi-form" novalidate>
+          <input type="email" id="upiEmail" class="upi-input" placeholder="you@email.com" required>
+          <button type="submit" class="upi-send">Send</button>
+        </form>
+        <span class="upi-error" id="upiEmailError" hidden>Enter a valid email first.</span>
+      </div>
       <a class="buy-opt" href="https://harshyad12.gumroad.com/l/makepartyalive?wanted=true" target="_blank" rel="noopener">
         <span class="buy-opt-title">Card / PayPal &mdash; Gumroad</span>
         <span class="buy-opt-sub">Instant checkout, key emailed automatically</span>
@@ -840,6 +870,31 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && buyModal && !buyModal.hidden) closeBuyModal();
   });
+
+  // UPI option: the only thing the buyer types is their own email. We build
+  // the mailto: ourselves and hand off to their mail client already
+  // addressed, subjected and worded — they just hit send there.
+  var upiForm = document.getElementById('upiForm');
+  if (upiForm) {
+    upiForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var emailEl = document.getElementById('upiEmail');
+      var errEl = document.getElementById('upiEmailError');
+      var email = emailEl.value.trim();
+      var valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      if (!valid) {
+        if (errEl) errEl.hidden = false;
+        emailEl.focus();
+        return;
+      }
+      if (errEl) errEl.hidden = true;
+      var subject = encodeURIComponent('Make Party Alive — UPI licence');
+      var body = encodeURIComponent(
+        'Hey, I\'d like to buy a licence via UPI.\n\nMy email: ' + email + '\n'
+      );
+      window.location.href = 'mailto:harshyadav662k@gmail.com?subject=' + subject + '&body=' + body;
+    });
+  }
 
   // Scroll reveal. One-shot per element — once it's played in, it stays in,
   // rather than re-animating every time a section re-enters the viewport
