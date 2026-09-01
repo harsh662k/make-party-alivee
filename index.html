@@ -320,6 +320,38 @@
   .plan li.no { color: #6E6E7E; }
   .plan li.no::before { content: "\2013"; color: #5A5A6A; }
 
+  /* buy licence modal — two payment paths, not one dead-drop to Gumroad */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, .72); backdrop-filter: blur(4px);
+  }
+  .modal-overlay[hidden] { display: none; }
+  .modal-card {
+    position: relative; width: 100%; max-width: 380px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--r); padding: 1.8rem 1.6rem 1.6rem;
+  }
+  .modal-close {
+    position: absolute; top: .9rem; right: .9rem;
+    width: 30px; height: 30px; border-radius: 50%; padding: 0;
+    border: 1px solid var(--line); background: transparent; color: var(--text);
+    font-size: 1.2rem; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { background: var(--raised); }
+  .buy-options { display: grid; gap: .8rem; margin-top: 1.4rem; }
+  .buy-opt {
+    display: block; text-decoration: none; color: var(--text);
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 1rem 1.1rem;
+    transition: border-color .15s ease, background .15s ease, transform .15s ease;
+  }
+  .buy-opt:hover { border-color: rgba(255,255,255,.4); background: var(--raised); transform: translateY(-1px); }
+  .buy-opt-title { display: block; font-weight: 700; font-size: .98rem; margin-bottom: .25rem; }
+  .buy-opt-sub { display: block; font-family: var(--mono); font-size: .74rem; color: var(--dim); }
+
   /* faq + specs */
   .faq { margin-top: 2rem; max-width: 760px; }
   details {
@@ -476,8 +508,8 @@
   </section>
 
   <section class="wrap" id="looks">
-    <p class="label">23 looks</p>
-    <h2 class="reveal">Four painted styles, eighteen live effects, one passthrough.</h2>
+    <p class="label">30 looks</p>
+    <h2 class="reveal">Four painted styles, twenty-five live effects, one passthrough.</h2>
     <p class="sub">
       Pick one and leave it, or let Autopilot cycle the ones you've ticked.
       Painted styles run on the GPU at around 15&thinsp;ms a frame.
@@ -500,12 +532,19 @@
       <span class="look">Storybook</span>
       <span class="look hi">Acid Lines</span>
       <span class="look">Rainbow Heat</span>
-      <span class="look">Warp Checker</span>
-      <span class="look">Vortex</span>
-      <span class="look">Mandala</span>
+      <span class="look hi">Warp Checker</span>
+      <span class="look hi">Vortex</span>
+      <span class="look hi">Mandala</span>
       <span class="look hi">Shroom World</span>
       <span class="look">Acid Sunset</span>
       <span class="look">Neon Face</span>
+      <span class="look">Mono Trails</span>
+      <span class="look">Rainbow Trails</span>
+      <span class="look">Light Painting</span>
+      <span class="look">Mono Wash</span>
+      <span class="look">Rainbow Wash</span>
+      <span class="look">Infinite Tunnel</span>
+      <span class="look">Slit Scan</span>
     </div>
     <p class="sub" style="margin-top:1.6rem">
       On top of the look sits a layer of beat FX &mdash; Flash, Punch, Strobe,
@@ -575,7 +614,7 @@
         <p class="tier">Free</p>
         <p class="price">$0</p>
         <ul>
-          <li>All 23 looks</li>
+          <li>All 30 looks</li>
           <li>Autopilot and beat FX</li>
           <li>Projector output</li>
           <li class="no">Watermark on the output</li>
@@ -592,7 +631,7 @@
           <li>Use it anywhere, forever</li>
           <li>All future updates</li>
         </ul>
-        <a class="btn btn-primary" href="https://harshyad12.gumroad.com/l/makepartyalive?wanted=true" target="_blank" rel="noopener">Buy a licence</a>
+        <a class="btn btn-primary" href="https://harshyad12.gumroad.com/l/makepartyalive?wanted=true" data-buy-trigger target="_blank" rel="noopener">Buy a licence</a>
       </div>
       <div class="plan custom">
         <p class="tier">Professional</p>
@@ -621,8 +660,8 @@
       basement with no signal.
     </p>
     <div class="cta-row" style="margin-top:2rem">
-      <a class="btn btn-primary" href="https://github.com/harsh662k/make-party-alivee/releases/download/v1.0.0/MakePartyAlive-1.0.0-win-x64.zip" id="dl">Download for Windows</a>
-      <a class="btn" href="https://harshyad12.gumroad.com/l/makepartyalive?wanted=true" target="_blank" rel="noopener">Buy a licence &mdash; $20</a>
+      <a class="btn btn-primary" href="https://github.com/harsh662k/make-party-alivee/releases/download/v1.1.0/MakePartyAlive-1.1.0-win-x64.zip" id="dl">Download for Windows</a>
+      <a class="btn" href="https://harshyad12.gumroad.com/l/makepartyalive?wanted=true" data-buy-trigger target="_blank" rel="noopener">Buy a licence &mdash; $20</a>
     </div>
     <div class="specs reveal-stagger">
       <div class="spec"><dt>System</dt><dd>Windows 10 or 11, 64-bit</dd></div>
@@ -656,7 +695,7 @@
       </details>
       <details>
         <summary>Do I need a powerful graphics card?</summary>
-        <p>Not for the eighteen live effects, which run on the processor. The four
+        <p>Not for the twenty-five live effects, which run on the processor. The four
         painted styles use the GPU and want a DirectX 12 card to stay smooth.</p>
       </details>
       <details>
@@ -695,6 +734,24 @@
     </div>
   </section>
 </main>
+
+<div class="modal-overlay" id="buyModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="buyModalTitle">
+    <button class="modal-close" id="buyModalClose" type="button" aria-label="Close">&times;</button>
+    <p class="tier" id="buyModalTitle" style="color:var(--text)">Buy a licence &mdash; $20</p>
+    <p class="sub" style="margin:0">One-time payment, removes the watermark, yours forever.</p>
+    <div class="buy-options">
+      <a class="buy-opt" href="mailto:harshyadav662k@gmail.com?subject=Make%20Party%20Alive%20%E2%80%94%20UPI%20licence&amp;body=Hey%2C%20I%27d%20like%20to%20buy%20a%20licence%20via%20UPI.%0A%0AName%3A%0A">
+        <span class="buy-opt-title">Pay by UPI</span>
+        <span class="buy-opt-sub">India &middot; emails us, we send the UPI ID and your key back by mail</span>
+      </a>
+      <a class="buy-opt" href="https://harshyad12.gumroad.com/l/makepartyalive?wanted=true" target="_blank" rel="noopener">
+        <span class="buy-opt-title">Card / PayPal &mdash; Gumroad</span>
+        <span class="buy-opt-sub">Instant checkout, key emailed automatically</span>
+      </a>
+    </div>
+  </div>
+</div>
 
 <footer class="wrap">
   <p>Made for house parties, sundowners, villa nights and small bars &mdash;
@@ -761,6 +818,28 @@
       });
     }
   }
+
+  // Buy-licence modal — two payment paths instead of one dead-drop to
+  // Gumroad. Href stays pointed at Gumroad on every trigger button, so a
+  // visitor with JS disabled still gets straight to checkout.
+  var buyModal = document.getElementById('buyModal');
+  var buyModalClose = document.getElementById('buyModalClose');
+  document.querySelectorAll('[data-buy-trigger]').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      buyModal.hidden = false;
+    });
+  });
+  function closeBuyModal() { buyModal.hidden = true; }
+  if (buyModalClose) buyModalClose.addEventListener('click', closeBuyModal);
+  if (buyModal) {
+    buyModal.addEventListener('click', function (e) {
+      if (e.target === buyModal) closeBuyModal();
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && buyModal && !buyModal.hidden) closeBuyModal();
+  });
 
   // Scroll reveal. One-shot per element — once it's played in, it stays in,
   // rather than re-animating every time a section re-enters the viewport
