@@ -876,10 +876,18 @@
   // addressed, subjected and worded — they just hit send there.
   var upiForm = document.getElementById('upiForm');
   if (upiForm) {
+    var upiEmailEl = document.getElementById('upiEmail');
+    var upiErrEl = document.getElementById('upiEmailError');
+    // The error was staying up after a failed empty submit even once the
+    // visitor typed a valid address — it only cleared on the *next* submit.
+    // Clear it live instead, the moment they touch the field again.
+    if (upiEmailEl && upiErrEl) {
+      upiEmailEl.addEventListener('input', function () { upiErrEl.hidden = true; });
+    }
     upiForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      var emailEl = document.getElementById('upiEmail');
-      var errEl = document.getElementById('upiEmailError');
+      var emailEl = upiEmailEl;
+      var errEl = upiErrEl;
       var email = emailEl.value.trim();
       var valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
       if (!valid) {
