@@ -372,7 +372,10 @@
     cursor: pointer; white-space: nowrap;
   }
   .upi-send:hover { background: #D8D8D8; }
-  .upi-error {
+  /* :not([hidden]) matters — a bare `display: block` here beats the UA
+     stylesheet's [hidden] { display: none } (author origin wins), which
+     pinned this error on screen permanently no matter what the JS set. */
+  .upi-error:not([hidden]) {
     display: block; margin-top: .5rem;
     font-family: var(--mono); font-size: .72rem; color: var(--hot);
   }
@@ -774,6 +777,11 @@
           <button type="submit" class="upi-send">Send</button>
         </form>
         <span class="upi-error" id="upiEmailError" hidden>Enter a valid email first.</span>
+        <p class="mail-fallback" id="upiFallback" hidden>
+          No mail app opened? Send your email to
+          <a href="mailto:harshyadav662k@gmail.com">harshyadav662k@gmail.com</a>
+          and we'll reply with the UPI ID.
+        </p>
       </div>
       <a class="buy-opt" href="https://harshyad12.gumroad.com/l/makepartyalive?wanted=true" target="_blank" rel="noopener">
         <span class="buy-opt-title">Card / PayPal &mdash; Gumroad</span>
@@ -896,6 +904,11 @@
         return;
       }
       if (errEl) errEl.hidden = true;
+      // mailto: silently no-ops when the machine has no default mail
+      // handler, which reads to the buyer as "the button is broken". Show
+      // the address outright so the flow never dead-ends.
+      var fallbackEl = document.getElementById('upiFallback');
+      if (fallbackEl) fallbackEl.hidden = false;
       var subject = encodeURIComponent('Make Party Alive — UPI licence');
       var body = encodeURIComponent(
         'Hey, I\'d like to buy a licence via UPI.\n\nMy email: ' + email + '\n'
